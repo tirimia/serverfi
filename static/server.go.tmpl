@@ -1,0 +1,24 @@
+package main
+
+import (
+	"embed"
+	"net/http"
+        "io/fs"
+        "log"
+)
+
+
+//go:embed {{ .Path }}/*
+var files embed.FS
+
+func main() {
+        fileSystem, _ := fs.Sub(files, "{{ .Path }}")
+	fs := http.FileServer(http.FS(fileSystem))
+	http.Handle("/", fs)
+
+	log.Println("Listening on port :{{ .ServerPort }}...")
+	err := http.ListenAndServe(":{{ .ServerPort }}", nil)
+	if err != nil {
+		log.Panic(err)
+	}
+}
