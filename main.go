@@ -29,6 +29,7 @@ type TemplateInputs struct {
 // TODO: more logs
 // TODO: see if we can bypass the issue of
 // TODO: clean this mess
+// TODO: add cross-compilation flags
 func main() {
 	var inputs TemplateInputs
 	var binaryName string
