@@ -8,5 +8,11 @@ I wanted to have an easy way to bundle and serve folders.
 
 Serverfi helps by offering exactly that: a simple and convenient way to take a folder and get a binary that will serve the contents of said folder over HTTP.
 
-### Why would you do it like this ?
+## Goals
+
+- Use standard library only
+- Have fun
+- Actually work
+
+## Why was this approach chosen ?
 Knew from the get-go I wanted to leverage the embed.FS feature of Golang. Thought to myself that I would need to bundle the Go compiler in my binary. Thank you, Nix, for helping me indulge in this horror.
