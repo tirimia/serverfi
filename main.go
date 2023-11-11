@@ -36,6 +36,12 @@ type Options struct {
 // TODO: see if we can bypass the issue of
 // TODO: clean this mess
 func main() {
+	w := flag.CommandLine.Output()
+	flag.Usage = func() {
+		fmt.Fprintln(w, "Usage: serverfi [flags] <directory_to_serve>")
+		flag.PrintDefaults()
+	}
+
 	var options Options
 	flag.StringVar(&options.GOOS, "goos", runtime.GOOS, "GOOS for which we compile the server binary")
 	flag.StringVar(&options.GOARCH, "goarch", runtime.GOARCH, "GOARCH for which we compile the server binary")
@@ -47,8 +53,10 @@ func main() {
 
 	path := flag.Arg(0)
 	if path == "" {
-		// TODO: print help and exit cleanly
-		log.Panic("first argument (path) is mandatory")
+		fmt.Fprintln(w, "Missing path of folder to serve")
+		fmt.Fprintln(w, "")
+		flag.Usage()
+		os.Exit(1)
 	}
 	info, err := os.Stat(path)
 	if err != nil {
