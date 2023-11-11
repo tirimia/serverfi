@@ -58,19 +58,20 @@ func main() {
 		flag.Usage()
 		os.Exit(1)
 	}
-	info, err := os.Stat(path)
+	dirInfo, err := os.Stat(path)
 	if err != nil {
-		panic(err)
+		log.Fatal("Could not stat target directory: " + err.Error())
 	}
-	if !info.IsDir() {
-		log.Panicf("Path %s is supposed to be a directory", path)
+	if !dirInfo.IsDir() {
+		log.Fatalf("Path %s is supposed to be a directory", path)
 	}
 
-	inputs.Path = info.Name()
+	inputs.Path = dirInfo.Name()
 
 	tmpFolder, err := ioutil.TempDir("", "serverfi-go-*")
 	if err != nil {
-		log.Fatalf("Error creating temporary directory for build: %v", err)
+		log.Printf("Error creating temporary directory for build: %v", err)
+		return
 	}
 	defer func() {
 		os.RemoveAll(tmpFolder)
@@ -80,7 +81,8 @@ func main() {
 
 	serverFile, err := ioutil.TempFile(filepath.Dir(path), "serverfile-*.go")
 	if err != nil {
-		panic(err)
+		log.Println("Could not create temporary server file: " + err.Error())
+		return
 	}
 	defer func() {
 		serverFile.Close()
@@ -90,23 +92,27 @@ func main() {
 
 	templateData, err := staticFiles.ReadFile("static/server.go.tmpl")
 	if err != nil {
-		panic(err)
+		log.Println("Could not read server file template: " + err.Error())
+		return
 	}
 
 	tmpl := template.Must(template.New("main").Parse(string(templateData)))
 	err = tmpl.Execute(serverFile, inputs)
 	if err != nil {
-		panic(err)
+		log.Println("Could not write templated server file: " + err.Error())
+		return
 	}
 
 	goZip, err := staticFiles.ReadFile("static/go.zip")
 	if err != nil {
-		log.Fatal("could not read bundled go archive")
+		log.Println("Could not read bundled go archive: " + err.Error())
+		return
 	}
 
 	err = Unzip(goZip, tmpFolder+"/")
 	if err != nil {
-		log.Fatal("could not extract " + err.Error())
+		log.Println("Could not extract bundled go zip: " + err.Error())
+		return
 	}
 
 	// Execute the binary
@@ -126,7 +132,8 @@ func main() {
 
 	err = cmd.Run()
 	if err != nil {
-		log.Fatal("Error running compiler: ", err)
+		log.Println("Could not compile server: " + err.Error())
+		return
 	}
 	log.Print("Built")
 }
