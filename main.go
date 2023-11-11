@@ -25,15 +25,23 @@ type TemplateInputs struct {
 	ServerPort int
 }
 
+type Options struct {
+	GOOS       string
+	GOARCH     string
+	BinaryName string
+}
+
 // TODO: optional logger for server
 // TODO: more logs
 // TODO: see if we can bypass the issue of
 // TODO: clean this mess
-// TODO: add cross-compilation flags
 func main() {
+	var options Options
+	flag.StringVar(&options.GOOS, "goos", runtime.GOOS, "GOOS for which we compile the server binary")
+	flag.StringVar(&options.GOARCH, "goarch", runtime.GOARCH, "GOARCH for which we compile the server binary")
+	flag.StringVar(&options.BinaryName, "name", "serverfi", "Name of the server binary")
+
 	var inputs TemplateInputs
-	var binaryName string
-	flag.StringVar(&binaryName, "name", "serverfi", "Name of the server binary")
 	flag.IntVar(&inputs.ServerPort, "port", 8080, "Port on which to serve files")
 	flag.Parse()
 
@@ -94,14 +102,14 @@ func main() {
 	}
 
 	// Execute the binary
-	cmd := exec.Command(tmpFolder+"/go/bin/go", "build", "-o", binaryName, "-pkgdir", tmpFolder+"/go/pkg", serverFile.Name())
+	cmd := exec.Command(tmpFolder+"/go/bin/go", "build", "-o", options.BinaryName, "-pkgdir", tmpFolder+"/go/pkg", serverFile.Name())
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	// We need to set GOOS GOARCH and HOME, lest the compiler freak out
 	cmd.Env = []string{
 		"CGO_ENABLED=0",
-		"GOOS=" + runtime.GOOS,
-		"GOARCH=" + runtime.GOARCH,
+		"GOOS=" + options.GOOS,
+		"GOARCH=" + options.GOARCH,
 		"GOROOT=" + tmpFolder + "/go",
 		"HOME=" + os.Getenv("HOME"),
 	}
